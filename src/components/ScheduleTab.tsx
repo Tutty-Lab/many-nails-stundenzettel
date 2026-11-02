@@ -453,7 +453,7 @@ export function ScheduleTab({
                 />
               ))}
               {["09:30–14:00", "14:00–19:30"].map((label, index) => (
-                <SummaryRow key={label} label={`Debug ${label}`} hint="ít nhất" dates={gridDates}
+                <SummaryRow key={label} label={label} hint="ít nhất" dates={gridDates}
                   value={date => String(windowCounts.get(date)?.[index] ?? "–")} />
               ))}
             </tfoot>
