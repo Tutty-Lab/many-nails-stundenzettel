@@ -426,10 +426,7 @@ export function ScheduleTab({
               ))}
             </tbody>
             <tfoot>
-              {["09:30–14:00", "14:00–19:30"].map((label, index) => (
-                <SummaryRow key={label} label={label} hint="ít nhất" dates={gridDates}
-                  value={date => String(windowCounts.get(date)?.[index] ?? "–")} />
-              ))}
+              
               <SummaryRow label="Số nhân viên" dates={gridDates} value={(d) => String(dayStats.get(d)!.people.size)} />
               <SummaryRow
                 label="Tổng giờ"
@@ -455,7 +452,10 @@ export function ScheduleTab({
                   peaks={(d) => peaksByDay.get(d)?.byLabel.get(rule.label)}
                 />
               ))}
-
+              {["09:30–14:00", "14:00–19:30"].map((label, index) => (
+                <SummaryRow key={label} label={`Debug ${label}`} hint="ít nhất" dates={gridDates}
+                  value={date => String(windowCounts.get(date)?.[index] ?? "–")} />
+              ))}
             </tfoot>
           </table>
         </div>
