@@ -3,8 +3,8 @@
 App lịch làm việc và Stundenzettel. Source nền Kichi, cấu hình riêng Many Nails.
 Wormser Straße 23, 67227 Frankenthal.
 
-- Giờ làm: T2–Chủ nhật 09:30–19:30. Ngày lễ Rheinland-Pfalz đóng cửa.
-- T2–T4 vắng hơn; T5–T7 đông hơn. Từ 14:00 đông; buổi sáng vẫn có khách.
+- Giờ làm: T2–T7 09:30–19:30; Chủ nhật đóng cửa. Ngày lễ Rheinland-Pfalz đóng cửa.
+- T2–T4 vắng hơn; T5–T7 đông hơn đông hơn. Từ 14:00 đông; buổi sáng vẫn có khách.
 - Ngày 01–10 và 23–cuối tháng đông hơn.
 - Ít nhất 2 nhân viên, không tính chủ. Ít nhất 1 nhân viên đến 19:30; tối thứ Sáu ít nhất 2.
 - Chủ thường có mặt; khi nghỉ, tắt hỗ trợ chủ trong tab nhân viên.

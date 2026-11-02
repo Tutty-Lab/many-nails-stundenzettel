@@ -74,8 +74,8 @@ const w = (start: number, end: number): DayWindow => ({ startMinutes: start, end
 //   Feiertag           wie Sonntag geöffnet (stärkster Umsatz)
 const MANY_NAILS_DAY:DayBlocks=[w(570,1170)];
 export const DEFAULT_WORK_HOURS:WorkHoursConfig={
- perWeekday:{monday:MANY_NAILS_DAY,tuesday:MANY_NAILS_DAY,wednesday:MANY_NAILS_DAY,thursday:MANY_NAILS_DAY,friday:MANY_NAILS_DAY,saturday:MANY_NAILS_DAY,sunday:MANY_NAILS_DAY},
- holiday:[],closedWeekdays:{monday:false,tuesday:false,wednesday:false,thursday:false,friday:false,saturday:false,sunday:false}
+ perWeekday:{monday:MANY_NAILS_DAY,tuesday:MANY_NAILS_DAY,wednesday:MANY_NAILS_DAY,thursday:MANY_NAILS_DAY,friday:MANY_NAILS_DAY,saturday:MANY_NAILS_DAY,sunday:[]},
+ holiday:[],closedWeekdays:{monday:false,tuesday:false,wednesday:false,thursday:false,friday:false,saturday:false,sunday:true}
 };
 
 /**

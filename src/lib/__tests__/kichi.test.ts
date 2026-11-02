@@ -4,10 +4,10 @@ import {publicHolidays} from "../holidays";
 import {normalizeWorkHours,resolveDay} from "../workHours";
 import {staffingWindows,weightedDailyTargets} from "../staffing";
 import {monthDemandFactor} from "../demand";
-it("opens Sundays and closes Rheinland-Pfalz holidays",()=>{
+it("closes Sundays and Rheinland-Pfalz holidays",()=>{
  const h=publicHolidays(2026),w=normalizeWorkHours(STORES[0].workHours);
  expect(h.has("2026-06-04")).toBe(true);expect(h.has("2026-11-01")).toBe(true);expect(h.has("2026-10-31")).toBe(false);
- expect(resolveDay(w,"2026-11-08",h).window).toEqual({startMinutes:570,endMinutes:1170});
+ expect(resolveDay(w,"2026-11-08",h).closed).toBe(true);
  expect(resolveDay(w,"2026-06-04",h).closed).toBe(true);
 });
 it("requires two employees without counting the owner, one through closing",()=>{

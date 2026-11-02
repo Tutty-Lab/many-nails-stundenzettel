@@ -7,7 +7,7 @@ import { clip } from "./staffing";
 import type { WorkHoursConfig } from "./workHours";
 export type StoreConfig = { id:string; name:string; shortName:string; address:string; sampleEmployees:()=>Employee[]; workHours?:WorkHoursConfig; notes?:string; demandProfile?:readonly DemandBand[]; dayWeights:Record<WeekdayKey,number>; staffingRules:readonly StaffingRule[] };
 const open={startMinutes:570,endMinutes:1170};
-const manyNailsHours:WorkHoursConfig={perWeekday:{monday:[open],tuesday:[open],wednesday:[open],thursday:[open],friday:[open],saturday:[open],sunday:[open]},holiday:[],closedWeekdays:{monday:false,tuesday:false,wednesday:false,thursday:false,friday:false,saturday:false,sunday:false}};
+const manyNailsHours:WorkHoursConfig={perWeekday:{monday:[open],tuesday:[open],wednesday:[open],thursday:[open],friday:[open],saturday:[open],sunday:[]},holiday:[],closedWeekdays:{monday:false,tuesday:false,wednesday:false,thursday:false,friday:false,saturday:false,sunday:true}};
 const rules:readonly StaffingRule[]=[
  {priority:"required",label:"Mindestens 2 Mitarbeitende",when:"09:30–19:30",minStaff:2,maxStaff:Infinity,scaled:false,who:(e)=>!e.ownerSupport,windows:clip(570,1170)},
  {priority:"required",label:"Nhân viên chốt ca",when:"Mỗi ngày đến 19:30",minStaff:1,maxStaff:Infinity,scaled:false,who:(e)=>!e.ownerSupport,windows:clip(1140,1170)},
