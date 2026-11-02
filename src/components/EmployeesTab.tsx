@@ -14,7 +14,7 @@ import { describePreferredWindow, ownShiftRangeMinutes, preferredWindowsOf } fro
 const inputClass =
   "rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-base sm:text-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500";
 
-const STATION_VI: Record<Station, string> = { SERVICE: "Thợ nail", KITCHEN: "Thợ nail", BOTH: "Thợ nail (linh hoạt)" };
+
 
 const FIXED_START_DEFAULT = "09:30";
 const FIXED_END_DEFAULT = "19:30";
@@ -78,7 +78,7 @@ export function draftFrom(emp?: Employee, partners: PartnerChoice = {}, monthlyM
     name: emp?.name ?? "",
     ownerSupport: emp?.ownerSupport ?? false,
     employmentType: emp?.employmentType ?? "VOLLZEIT",
-    station: emp?.station ?? "SERVICE",
+    station: "BOTH",
     hours: emp ? hoursText(Math.round(((monthlyMinutes ?? emp.targetMinutes) / 60) * 100) / 100) : "169",
     monthlySalary: emp?.monthlySalary != null ? hoursText(emp.monthlySalary) : "",
     hourlyRate: emp ? (emp.hourlyRate == null ? "" : hoursText(emp.hourlyRate)) : hoursText(DEFAULT_HOURLY_RATE),
@@ -152,7 +152,7 @@ export function draftToEmployee(d: Draft): Omit<Employee, "id"> {
     name: d.name.trim() || "Nhân viên mới",
     employmentType: d.employmentType,
     ownerSupport: d.ownerSupport || undefined,
-    station: d.station,
+    station: "BOTH",
     quotaSource: "hours",
     unavailableRanges: d.unavailableRanges.filter(range => range.startDate && range.endDate && range.startDate <= range.endDate),
     targetMinutes: d.ownerSupport ? 0 : Math.round(hours * 60),
@@ -336,13 +336,7 @@ function EmployeeSummaryRow({
         <span className="shrink-0 rounded bg-slate-100 text-slate-600 text-[11px] px-1.5 py-0.5">
           {employmentShortVi(emp.employmentType)}
         </span>
-        <span
-          className={`shrink-0 rounded text-[11px] px-1.5 py-0.5 ${
-            emp.station === "KITCHEN" ? "bg-orange-50 text-orange-800" : "bg-sky-50 text-sky-800"
-          }`}
-        >
-          {STATION_VI[emp.station ?? "SERVICE"]}
-        </span>
+
       </div>
       <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-slate-500">
         <span>
@@ -619,18 +613,7 @@ function EmployeeSheet({
                 ]}
               />
             </div>
-            <div>
-              <FieldLabel>Bộ phận</FieldLabel>
-              <Segmented<Station>
-                value={d.station}
-                onChange={(v) => set("station", v)}
-                options={[
-                  { value: "SERVICE", label: "Thợ nail" },
-                  { value: "KITCHEN", label: "Thợ nail" },
-                  { value: "BOTH", label: "Thợ nail (linh hoạt)" },
-                ]}
-              />
-            </div>
+
             <div className="grid grid-cols-2 gap-3">
               <label className="block min-w-0">
                 <FieldLabel>Lương tháng (€)</FieldLabel>
