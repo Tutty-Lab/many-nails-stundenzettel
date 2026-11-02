@@ -22,3 +22,5 @@ npm test
 ```
 
 Mật khẩu mặc định 1991 chỉ khóa giao diện trên trình duyệt; không phải xác thực server. Đồng bộ Supabase cần backend riêng; không tái sử dụng cấu hình store cũ.
+
+Ưu tiên bắt buộc: tối thứ Sáu 17:00–19:30 có ít nhất 2 nhân viên; mỗi ngày mở cửa có ít nhất 1 nhân viên 19:00–19:30. Chủ không được tính. Luật 2 nhân viên cả ngày vẫn được kiểm tra; ngân sách hiện tại chưa đủ để phủ mọi khung. Tạo lại lịch để áp dụng luật mới.

@@ -346,7 +346,7 @@ function calculateDayCost(shifts: Shift[], blocks: DayBlocks, weekday: WeekdayKe
       // Gruppenregeln (z. B. „mindestens 1 Phục vụ") wiegen 10× – sonst opfert der
       // Planer eine halbe Stunde ohne Service, um die Tagesstunden zu treffen.
       const deficit = (Math.max(0, window.minStaff - staff) + Math.max(0, staff - window.maxStaff)) * window.overlap[k];
-      if (window.priority === "required") required += deficit;
+      if (window.priority === "required") required += deficit * (window.weight ?? 1);
       else if (window.priority === "preparation") preparation += deficit;
       else if (window.priority === "coverage") coverage += deficit;
       else cost += deficit * (window.weight ?? (who ? 5000 : 500));
