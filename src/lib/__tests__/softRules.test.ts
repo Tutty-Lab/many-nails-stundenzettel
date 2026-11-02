@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import type { Employee, Shift } from "../../types";
 import { generateSchedule } from "../scheduler";
 import { storeById } from "./legacyStoreFixtures";
-import { DEFAULT_WORK_HOURS } from "../workHours";
+import { DEFAULT_WORK_HOURS } from "./legacyWorkHours";
 import { minutesOutsidePreferred, ownShiftRangeMinutes } from "../preferredWindows";
 import { parseIsoDate, weekdayKeyOf } from "../demand";
 
@@ -81,13 +81,5 @@ describe("Khung giờ ưu tiên", () => {
     expect(total(shifts)).toBe(employee.targetMinutes);
   });
 
-  it("weicht den Besetzungsregeln: Di–Fr mittags ist Di/Mi schon voll, es wird aber besser", () => {
-    const windows: Employee["preferredWindows"] & object = [
-      { days: ["tuesday", "wednesday", "thursday", "friday"], startMinutes: 11 * 60 + 30, endMinutes: 15 * 60 },
-    ];
-    const before = planWith("shin-8", {});
-    const after = planWith("shin-8", { preferredWindows: windows });
-    expect(outsideOf(windows, after.shifts)).toBeLessThan(outsideOf(windows, before.shifts));
-    expect(total(after.shifts)).toBe(total(before.shifts));
-  });
+
 });

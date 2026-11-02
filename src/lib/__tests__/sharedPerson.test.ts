@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Employee } from "../../types";
-import { makeEmployee } from "../sampleData";
+import { makeEmployee } from "./sampleFixtures";
 import { currentPartners, linkPatches, type StoreRoster } from "../sharedPerson";
 
 const emp = (id: string, name: string, personKey?: string): Employee => ({

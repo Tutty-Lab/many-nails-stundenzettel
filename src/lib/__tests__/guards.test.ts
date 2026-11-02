@@ -9,7 +9,7 @@
 
 import { describe, expect, it } from "vitest";
 import { analyzeSchedule } from "../analyze";
-import { DEFAULT_WORK_HOURS } from "../workHours";
+import { DEFAULT_WORK_HOURS } from "./legacyWorkHours";
 import type { Employee, Shift } from "../../types";
 
 const emp = (id: string): Employee => ({

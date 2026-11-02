@@ -1,4 +1,4 @@
-import { isRequiredCoverage } from "../lib/coveragePolicy";
+
 import { useMemo, useState } from "react";
 import type { UseScheduleReturn } from "../hooks/useSchedule";
 import type { Shift } from "../types";
@@ -597,17 +597,11 @@ function CoverageRow({
 
 // Khung giờ cho các dòng „ít nhất" Thợ nail/Thợ nail – theo giờ Lemontaste
 // (11:00–21:30; đông 12–14 và 18–20). Nhãn ngắn, đầy đủ ở tooltip.
-const GROUP_RANGES = [
-  ["open", "8–12", "08:00 – 12:00", 8 * 60, 12 * 60],
-  ["noon", "12–14", "12:00 – 14:00 (giờ đông)", 12 * 60, 14 * 60],
-  ["afternoon", "14–17", "14:00 – 17:00 (ít khách 15–17)", 14 * 60, 17 * 60],
-  ["preparation", "17–18", "17:00 – 18:00 (chuẩn bị giờ đông)", 17 * 60, 18 * 60],
-  ["evening", "18–20", "18:00 – 20:00 (giờ đông)", 18 * 60, 20 * 60],
-] as const;
+const GROUP_RANGES = [["morning","09:30–14","09:30–14:00",570,840],["peak","14–19:30","14:00–19:30",840,1170]] as const;
 const GROUP_WINDOWS = (["KITCHEN", "SERVICE"] as const).flatMap((group) =>
   GROUP_RANGES.map(([key, range, title, from, to]) => ({
     key: `${group}-${key}`, range, title, group, from, to,
-    need: isRequiredCoverage(from) ? 1 : 0,
+    need: 0,
   })),
 );
 

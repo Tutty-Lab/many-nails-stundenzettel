@@ -5,8 +5,8 @@
 // 15 Monate umgelegt). Coco: 173, 173, 173, 156, 130, 152, 39 und 43 Stunden.
 // ============================================================================
 
-import type { Employee, Schedule, Station } from "../types";
-import { DEFAULT_WORK_HOURS } from "./workHours";
+import type { Employee, Schedule, Station } from "../../types";
+import { DEFAULT_WORK_HOURS } from "./legacyWorkHours";
 
 export function makeEmployee(
   id: string,

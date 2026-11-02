@@ -399,6 +399,10 @@ export function useSchedule(storeId: string) {
       setGenError(`Chỉ tạo lịch cho các năm ${SCHEDULE_YEAR_RANGE_LABEL}.`);
       return [];
     }
+    if (schedule.employees.some(e => !e.ownerSupport && !e.weeklyHours && e.targetMinutes <= 0)) {
+      setGenError("Cần bổ sung giờ hợp đồng của tất cả nhân viên trước khi tạo lịch.");
+      return [];
+    }
     try {
       const shifts = await generateScheduleInWorker({
         year,

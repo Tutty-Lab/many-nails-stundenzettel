@@ -1,10 +1,10 @@
 // Isolated historical rosters for scheduler regression tests inherited from demo.
 import type { Schedule } from "../../types";
 import type { StoreConfig } from "../stores";
-import { shinEmployees, cocoEmployees, nieuEmployees } from "../sampleData";
+import { shinEmployees, cocoEmployees, nieuEmployees } from "./sampleFixtures";
 import { DAY_WEIGHTS } from "../demand";
 import { STAFFING_RULES } from "../staffing";
-import { DEFAULT_WORK_HOURS } from "../workHours";
+import { DEFAULT_WORK_HOURS } from "./legacyWorkHours";
 export { withSharedPersonDefaults } from "../stores";
 export type { StoreConfig } from "../stores";
 export const STORES: StoreConfig[] = [

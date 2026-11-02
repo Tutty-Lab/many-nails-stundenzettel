@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { generateSchedule } from "../scheduler";
 import { validateSchedule } from "../validation";
-import { DEFAULT_WORK_HOURS, resolveDay, type OverrideMap } from "../workHours";
-import { SAMPLE_EMPLOYEES } from "../sampleData";
+import { DEFAULT_WORK_HOURS } from "./legacyWorkHours";
+import { resolveDay, type OverrideMap } from "../workHours";
+import { SAMPLE_EMPLOYEES } from "./sampleFixtures";
 import { datesOfMonth } from "../demand";
 import { publicHolidays } from "../holidays";
 import { monthlyTargetMinutesFor } from "../contract";
