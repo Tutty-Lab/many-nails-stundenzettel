@@ -12,6 +12,7 @@ import { minutesToShortHours, minutesToTime } from "../lib/time";
 import { signedHours } from "../lib/dateFormat";
 import { isDayClosed, resolveDay } from "../lib/workHours";
 
+import { coveragePoints, workingAt } from "../lib/staffing";
 import { publicHolidays } from "../lib/holidays";
 import { ShiftCellEditor } from "./ShiftCellEditor";
 import { ScheduleDayView } from "./ScheduleDayView";
@@ -154,6 +155,34 @@ export function ScheduleTab({
     return map;
   }, [store.analysis]);
   const staffingRows = store.storeConfig.staffingRules;
+
+  // Lowest simultaneous paid employee count in each window; breaks excluded.
+  const windowCounts = useMemo(() => {
+    const result = new Map<string, [number | null, number | null]>();
+    const holidays = publicHolidays(schedule.year);
+    const overrides = Object.fromEntries(schedule.dateOverrides.map(o => [o.date, o]));
+    const paidIds = new Set(schedule.employees.filter(e => !e.ownerSupport).map(e => e.id));
+    for (const date of dates) {
+      const day = resolveDay(schedule.workHours, date, holidays, overrides);
+      const shifts = schedule.shifts.filter(s => s.date === date && paidIds.has(s.employeeId));
+      const counts = [[570, 840], [840, 1170]].map(([from, to]) => {
+        if (day.closed) return null;
+        let minimum: number | null = null;
+        for (const block of day.blocks) {
+          const start = Math.max(from, block.startMinutes), end = Math.min(to, block.endMinutes);
+          if (start >= end) continue;
+          const points = coveragePoints(shifts, start, end).sort((a,b) => a-b);
+          for (const minute of points.filter(m => m >= start && m < end)) {
+            const count = new Set(shifts.filter(s => workingAt(s, minute)).map(s => s.employeeId)).size;
+            minimum = minimum === null ? count : Math.min(minimum, count);
+          }
+        }
+        return minimum;
+      });
+      result.set(date, [counts[0], counts[1]]);
+    }
+    return result;
+  }, [dates, schedule]);
 
   const hasEmployees = store.activeEmployees.length > 0;
 
@@ -397,6 +426,10 @@ export function ScheduleTab({
               ))}
             </tbody>
             <tfoot>
+              {["09:30–14:00", "14:00–19:30"].map((label, index) => (
+                <SummaryRow key={label} label={label} hint="ít nhất" dates={gridDates}
+                  value={date => String(windowCounts.get(date)?.[index] ?? "–")} />
+              ))}
               <SummaryRow label="Số nhân viên" dates={gridDates} value={(d) => String(dayStats.get(d)!.people.size)} />
               <SummaryRow
                 label="Tổng giờ"
