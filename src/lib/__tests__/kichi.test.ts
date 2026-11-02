@@ -13,7 +13,8 @@ it("opens Sundays and closes Rheinland-Pfalz holidays",()=>{
 it("requires two employees without counting the owner, one through closing",()=>{
  const s=STORES[0],employees=s.sampleEmployees(),owner=employees.find(e=>e.ownerSupport)!;
  expect(employees.filter(e=>!e.ownerSupport)).toHaveLength(5);
- expect(employees.filter(e=>!e.ownerSupport).every(e=>e.targetMinutes===0)).toBe(true);
+ expect(employees.filter(e=>!e.ownerSupport).every(e=>e.targetMinutes>0)).toBe(true);
+ expect(employees.find(e=>e.id==="mn-2")?.targetMinutes).toBe(7338);
  const windows=staffingWindows([{startMinutes:570,endMinutes:1170}],"friday",s.staffingRules);
  expect(windows[0].minStaff).toBe(2);expect(windows.every(w=>w.who?.(owner)===false)).toBe(true);
  expect(windows.at(-1)?.endMinutes).toBe(1170);

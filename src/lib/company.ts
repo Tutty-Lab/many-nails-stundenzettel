@@ -9,5 +9,5 @@ export const OPERATING_PARAMS:Array<[string,string]>=[
  ["Besetzung","Mindestens 2 Mitarbeitende, ohne Inhaber"],
  ["Spätdienst","Mindestens 1 Mitarbeiter bis 19:30; Freitagabend mindestens 2"],
  ["Inhaber","Meist anwesend, gelegentlich abwesend"],
- ["Vertragsstunden","Noch zu bestätigen"],
+ ["Vertragsstunden","Vorläufig: Brutto / 13,90 EUR pro Stunde"],
 ];

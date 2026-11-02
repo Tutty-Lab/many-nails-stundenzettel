@@ -9,8 +9,8 @@ Wormser Straße 23, 67227 Frankenthal.
 - Ít nhất 2 nhân viên, không tính chủ. Ít nhất 1 nhân viên đến 19:30; tối thứ Sáu ít nhất 2.
 - Chủ thường có mặt; khi nghỉ, tắt hỗ trợ chủ trong tab nhân viên.
 
-Giờ hợp đồng chưa được cung cấp. 5 nhân viên mẫu có giờ mục tiêu 0, cần nhập giờ/hợp đồng trước khi tạo lịch thực tế. Không suy ra Vollzeit hoặc số giờ từ Brutto.
-Repo public không chứa tên nhân viên thật, lương, PDF, số thuế/BHXH hoặc địa chỉ cá nhân. Bảng tổng hợp lương giữ local trong private/payroll.json (Git bỏ qua), không được bundle. Nhập thông tin nhân viên bằng tab Nhân viên.
+Bảng lương không ghi giờ hợp đồng. App quy đổi tạm tính theo Brutto ÷ 13,90 €/h: 603 € ≈ 43,38 h; 1.700 € ≈ 122,30 h; 1.200 € ≈ 86,33 h; 1.200 € ≈ 86,33 h; 1.500 € ≈ 107,91 h/tháng. Các số giờ này là ước tính, cần xác nhận lại với chủ trước khi dùng chính thức.
+Repo public chứa mức Brutto với nhãn nhân viên ẩn danh để quy đổi giờ; không chứa tên nhân viên thật, PDF, số thuế/BHXH hoặc địa chỉ cá nhân. Bảng tổng hợp lương giữ local trong private/payroll.json (Git bỏ qua), không được bundle. Nhập thông tin nhân viên bằng tab Nhân viên.
 
 Hệ số nhu cầu chỉ là trọng số tương đối: T2–T4 0.8; T5 1.2; T6 1.4; T7 1.5; CN 1. Ngày đông trong tháng nhân 1.25. Đây là tham số lập lịch, chưa phải tỷ lệ Umsatz đã xác nhận. Mục tiêu giờ vẫn chuẩn hóa theo tuần. Ngày nghỉ thêm dịp Tết cần nhập ngày cụ thể trong Cài đặt.
 

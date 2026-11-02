@@ -1,6 +1,12 @@
 import type { Employee } from "../types";
-/** Public starter records: enter names, contracts and pay through the employee editor. */
-export function manyNailsEmployees(): Employee[] {
-  return [...Array.from({length:5},(_,i):Employee=>({id:`mn-${i+1}`,name:`Nhân viên ${i+1}`,employmentType:i===0?"MINIJOB":"TEILZEIT",station:"BOTH",role:"Thợ nail · chờ xác nhận hợp đồng",quotaSource:"hours",targetMinutes:0,referenceEstimated:true})),
-    {id:"mn-owner",name:"Chủ",employmentType:"VOLLZEIT",station:"BOTH",targetMinutes:0,ownerSupport:true}];
-}
+import { DEFAULT_HOURLY_RATE, salaryToMinutes } from "./payroll";
+const staff = (id:string,name:string,salary:number,type:Employee["employmentType"]):Employee => ({ id,name,employmentType:type,station:"BOTH",role:"Thợ nail",monthlySalary:salary,hourlyRate:DEFAULT_HOURLY_RATE,quotaSource:"salary",targetMinutes:salaryToMinutes(salary,DEFAULT_HOURLY_RATE),referenceEstimated:true });
+/** Seeded from the October 2026 payroll. Hours are estimated: Brutto / 13.90 €/h. */
+export function manyNailsEmployees(): Employee[] { return [
+ staff("mn-1","Nhân viên 1",603,"MINIJOB"),
+ staff("mn-2","Nhân viên 2",1700,"TEILZEIT"),
+ staff("mn-3","Nhân viên 3",1200,"TEILZEIT"),
+ staff("mn-4","Nhân viên 4",1200,"TEILZEIT"),
+ staff("mn-5","Nhân viên 5",1500,"TEILZEIT"),
+ {id:"mn-owner",name:"Chủ",employmentType:"VOLLZEIT",station:"BOTH",targetMinutes:0,ownerSupport:true},
+ ]; }
