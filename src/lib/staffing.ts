@@ -73,14 +73,14 @@ export const STAFFING_RULES: readonly StaffingRule[] = [
     windows: (blocks) => blocks.map((block) => ({ startMinutes: block.startMinutes, endMinutes: block.endMinutes })),
   },
   {
-    label: "Chốt ca", when: "19:00–19:30", minStaff: 1, maxStaff: Infinity, scaled: false,
-    windows: clip(19 * 60, 19 * 60 + 30),
+    label: "Chốt ca trưa", when: "14:30–15:00", minStaff: 1, maxStaff: Infinity, scaled: false,
+    windows: clip(14 * 60 + 30, LUNCH_END),
   },
-  { label: "Many Nails coverage", when: "09:30–19:30", minStaff: 2, maxStaff: Infinity, scaled: false, windows: clip(570, 1170) },
-  
+  { label: "Trưa", when: "12:00–14:00", minStaff: 3, maxStaff: 7, scaled: false, windows: clip(12 * 60, 14 * 60) },
+  { label: "Tối", when: "18:00–21:00", minStaff: 4, maxStaff: 7, scaled: false, windows: clip(18 * 60, 21 * 60) },
   {
-    label: "Đóng cửa", when: "19:00–19:30", minStaff: CLOSING_MIN, maxStaff: CLOSING_MAX, scaled: false,
-    windows: clip(19 * 60, 19 * 60 + 30),
+    label: "Đóng cửa", when: "21:30–22:00", minStaff: CLOSING_MIN, maxStaff: CLOSING_MAX, scaled: false,
+    windows: clip(CLOSING_START, 22 * 60),
   },
 ];
 

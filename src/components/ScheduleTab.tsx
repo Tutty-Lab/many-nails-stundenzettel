@@ -429,9 +429,9 @@ export function ScheduleTab({
             <tfoot>
               <SummaryRow label="Số nhân viên" dates={gridDates} value={(d) => String(dayStats.get(d)!.people.size)} />
               <SummaryRow label="Số ca" dates={gridDates} value={(d) => String(dayStats.get(d)!.shifts)} />
-              <SummaryRow label="Thợ nail riêng" labelClass="text-orange-700" dates={gridDates} value={(d) => String(groupStats.get(d)!.kitchen)} />
-              <SummaryRow label="Thợ nail riêng" labelClass="text-sky-700" dates={gridDates} value={(d) => String(groupStats.get(d)!.service)} />
-              <SummaryRow label="Cả 2" labelClass="text-violet-700" dates={gridDates} value={(d) => String(groupStats.get(d)!.flexible)} />
+              <SummaryRow label="Nhóm nail" labelClass="text-orange-700" dates={gridDates} value={(d) => String(groupStats.get(d)!.kitchen)} />
+              <SummaryRow label="Nhóm nail" labelClass="text-sky-700" dates={gridDates} value={(d) => String(groupStats.get(d)!.service)} />
+              <SummaryRow label="Nail linh hoạt" labelClass="text-violet-700" dates={gridDates} value={(d) => String(groupStats.get(d)!.flexible)} />
               <SummaryRow
                 label="Tổng giờ"
                 dates={gridDates}

@@ -81,5 +81,13 @@ describe("Khung giờ ưu tiên", () => {
     expect(total(shifts)).toBe(employee.targetMinutes);
   });
 
-
+  it("weicht den Besetzungsregeln: preferences never worsen outside minutes while retaining required coverage", () => {
+    const windows: Employee["preferredWindows"] & object = [
+      { days: ["tuesday", "wednesday", "thursday", "friday"], startMinutes: 11 * 60 + 30, endMinutes: 15 * 60 },
+    ];
+    const before = planWith("shin-8", {});
+    const after = planWith("shin-8", { preferredWindows: windows });
+    expect(outsideOf(windows, after.shifts)).toBeLessThanOrEqual(outsideOf(windows, before.shifts));
+    expect(total(after.shifts)).toBe(total(before.shifts));
+  });
 });

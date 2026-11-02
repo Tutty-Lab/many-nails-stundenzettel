@@ -14,10 +14,10 @@ import { describePreferredWindow, ownShiftRangeMinutes, preferredWindowsOf } fro
 const inputClass =
   "rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-base sm:text-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500";
 
-const STATION_VI: Record<Station, string> = { SERVICE: "Thợ nail", KITCHEN: "Thợ nail", BOTH: "Cả 2 (Thợ nail + Thợ nail)" };
+const STATION_VI: Record<Station, string> = { SERVICE: "Thợ nail", KITCHEN: "Thợ nail", BOTH: "Thợ nail (linh hoạt)" };
 
-const FIXED_START_DEFAULT = "08:00";
-const FIXED_END_DEFAULT = "20:00";
+const FIXED_START_DEFAULT = "09:30";
+const FIXED_END_DEFAULT = "19:30";
 
 const WEEKDAY_ORDER: WeekdayKey[] = [
   "monday",
@@ -165,7 +165,7 @@ export function draftToEmployee(d: Draft): Omit<Employee, "id"> {
       d.fixed && fixedEnd > fixedStart
         ? { startMinutes: fixedStart, endMinutes: fixedEnd }
         : undefined,
-    shiftWindow: d.limited ? { startMinutes: safeMinutes(d.windowStart,"08:00"), endMinutes: safeMinutes(d.windowEnd,"20:00") } : undefined,
+    shiftWindow: d.limited ? { startMinutes: safeMinutes(d.windowStart,"09:30"), endMinutes: safeMinutes(d.windowEnd,"19:30") } : undefined,
     availableWeekdays: d.daysOff.length === 0 || available.length === 0 ? undefined : available,
     maxDaysPerWeek: d.maxDays === "" || tage < 1 ? undefined : Math.min(6, Math.round(tage)),
     requiredOnHolidays: d.holidayDuty ? true : undefined,
@@ -627,7 +627,7 @@ function EmployeeSheet({
                 options={[
                   { value: "SERVICE", label: "Thợ nail" },
                   { value: "KITCHEN", label: "Thợ nail" },
-                  { value: "BOTH", label: "Cả 2 (Thợ nail + Thợ nail)" },
+                  { value: "BOTH", label: "Thợ nail (linh hoạt)" },
                 ]}
               />
             </div>
@@ -641,7 +641,7 @@ function EmployeeSheet({
                 <HoursInput value={d.hourlyRate} onChange={v => set("hourlyRate", v)} placeholder="13,90" unit="€/h" />
               </label>
             </div>
-            {d.ownerSupport && <p className="text-sm text-slate-600">Chủ quán hỗ trợ suốt giờ mở cửa mỗi ngày, mỗi lúc một vị trí Thợ nail hoặc Thợ nail. Không tính giờ hợp đồng.</p>}
+            {d.ownerSupport && <p className="text-sm text-slate-600">Chủ thường có mặt; tắt hỗ trợ khi nghỉ. Không tính vào 2 nhân viên tối thiểu hoặc giờ hợp đồng.</p>}
             <label className="block">
               <FieldLabel>Giờ / tháng</FieldLabel>
               <HoursInput value={d.hours} onChange={v => set("hours", v)} placeholder="VD 169" />

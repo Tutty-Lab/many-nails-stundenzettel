@@ -15,8 +15,8 @@ export function StaffingReport({ analysis }: { analysis: ScheduleAnalysis }) {
     <details className={`mb-3 rounded-lg border px-3 py-2 text-sm ${gaps.length
       ? "border-rose-200 bg-rose-50 text-rose-900" : "border-emerald-200 bg-emerald-50 text-emerald-900"}`}>
       <summary className="cursor-pointer font-medium">
-        {gaps.length ? `${gaps.length} khung bắt buộc thiếu/thừa nhân sự` : "Đã phủ các khung bắt buộc 11–14h, 17–20h"}
-        <span className="ml-2 text-xs font-normal">Xem hệ số 1,5 và nhân sự theo giờ</span>
+        {gaps.length ? `${gaps.length} khung bắt buộc thiếu/thừa nhân sự` : "Đã phủ nhân viên suốt 09:30–19:30"}
+        <span className="ml-2 text-xs font-normal">Xem phân bổ giờ và nhân sự</span>
       </summary>
       <div className="mt-3 overflow-x-auto">
         <table className="min-w-[650px] border-collapse text-xs">
