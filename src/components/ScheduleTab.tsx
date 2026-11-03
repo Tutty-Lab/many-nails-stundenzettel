@@ -23,7 +23,7 @@ import { monthlyTargetMinutesFor, SCHEDULE_SLOT_MINUTES } from "../lib/contract"
 import { StaffingReport } from "./StaffingReport";
 import { ServiceCoverageReport } from "./ServiceCoverageReport";
 import type { PeakCoverage } from "../lib/analyze";
-import { ruleById, staffingRuleId } from "../lib/rules";
+
 import { checkShifts } from "../lib/shiftChecks";
 
 /** „17", „11½" (halbe Stunde), sonst „11:15" – so bleibt die Zelle schmal. */
@@ -154,7 +154,7 @@ export function ScheduleTab({
     }
     return map;
   }, [store.analysis]);
-  const staffingRows = store.storeConfig.staffingRules;
+
 
   // Lowest simultaneous paid employee count in each window; breaks excluded.
   const windowCounts = useMemo(() => {
@@ -442,16 +442,7 @@ export function ScheduleTab({
                   return day && day.targetHours > 0 ? minutesToShortHours(Math.round(day.targetHours * 2) * 30) : "–";
                 }}
               />
-              {schedule.shifts.length > 0 && staffingRows.map((rule) => (
-                <CoverageRow
-                  key={rule.label}
-                  label={rule.label}
-                  when={rule.when}
-                  hard={ruleById(staffingRuleId(rule.label)).kind === "hard"}
-                  dates={gridDates}
-                  peaks={(d) => peaksByDay.get(d)?.byLabel.get(rule.label)}
-                />
-              ))}
+
               {["09:30–14:00", "14:00–19:30"].map((label, index) => (
                 <SummaryRow key={label} label={label} hint="ít nhất" dates={gridDates}
                   value={date => String(windowCounts.get(date)?.[index] ?? "–")} />
@@ -500,83 +491,6 @@ function SummaryRow({
           {value(d)}
         </td>
       ))}
-      <td className="border-t border-l border-slate-200" />
-      <td className="border-t border-l border-slate-200" />
-    </tr>
-  );
-}
-
-/** Kurznamen der Besetzungsregeln für die schmale erste Spalte. */
-const SHORT_RULE_LABELS: Record<string, string> = {
-  "Trong giờ mở cửa": "Giờ mở",
-  "Cao điểm trưa": "Đông 12–14",
-  "Cao điểm tối": "Đông 18–20",
-  "Phục vụ trưa": "Thợ nail 12–14",
-  "Phục vụ tối": "Thợ nail 18–20",
-  "Thợ nail chuẩn bị trưa": "Thợ nail CB 11–12",
-  "Thợ nail chuẩn bị tối": "Thợ nail CB 17–18",
-  "Thợ nail": "Có Thợ nail",
-};
-
-/**
- * Eine Besetzungsregel als Zeile: wie viele Leute in der Spanne da sind, als
- * „vắng–đông" (kleinste–größte Zahl; bei „Trong giờ mở cửa" über beide Blöcke).
- * Nur die kleinste Zahl zu zeigen las sich wie „abends weniger Leute", obwohl
- * nur die letzte Stunde dünner war. Zu wenig → roter Rahmen „cần N",
- * zu viele → gelber Rahmen „tối đa N". Gleiche Zahlen wie in der Prüfung.
- */
-function CoverageRow({
-  label,
-  when,
-  hard,
-  dates,
-  peaks,
-}: {
-  label: string;
-  when: string;
-  hard: boolean;
-  dates: string[];
-  peaks: (d: string) => PeakCoverage[] | undefined;
-}) {
-  return (
-    <tr className="bg-slate-50 text-slate-600">
-      <td
-        className="sticky left-0 z-10 bg-slate-50 border-t border-r border-slate-200 px-1.5 py-1 font-medium w-[80px] max-w-[80px] text-[10px] leading-tight"
-        title={`${hard ? "Luật cứng" : "Luật mềm"}: ${label}, ${when} · số người vắng–đông`}
-      >
-        {/* Nhãn ngắn để cột tên hẹp; đầy đủ ở tooltip. Chấm đỏ = luật cứng, vàng = mềm. */}
-        <span className={`mr-1 inline-block h-1.5 w-1.5 rounded-full align-middle ${hard ? "bg-rose-500" : "bg-amber-400"}`} />
-        {SHORT_RULE_LABELS[label] ?? label}
-      </td>
-      {dates.map((d) => {
-        const list = peaks(d);
-        if (!list || list.length === 0) {
-          return (
-            <td key={d} className="border-t border-l border-slate-200 px-1 py-1 text-center text-slate-300">
-              –
-            </td>
-          );
-        }
-        const min = Math.min(...list.map((p) => p.minStaff));
-        const max = Math.max(...list.map((p) => p.maxStaff));
-        const need = Math.max(...list.map((p) => p.required));
-        const allowed = Math.min(...list.map((p) => p.allowed));
-        const short = list.some((p) => p.minStaff < p.required);
-        return (
-          <td
-            key={d}
-            className={`border-t border-l border-slate-200 px-1 py-1 text-center ${
-              !short ? ""
-                : hard ? "bg-rose-50 font-semibold text-rose-700 outline outline-2 -outline-offset-2 outline-rose-500"
-                : "bg-amber-50 font-semibold text-amber-800 outline outline-2 -outline-offset-2 outline-amber-500"
-            }`}
-            title={`ít nhất ${min}, đông nhất ${max} · luật: ${need}${Number.isFinite(allowed) ? `–${allowed}` : "+"} người`}
-          >
-            {min === max ? min : `${min}–${max}`}
-            {short && <span className="block text-[10px] leading-none">{hard ? `cần ${need}` : "cho phép trống"}</span>}
-          </td>
-        );
-      })}
       <td className="border-t border-l border-slate-200" />
       <td className="border-t border-l border-slate-200" />
     </tr>

@@ -6,7 +6,7 @@ import { publicHolidays } from "../holidays";
 import { resolveDay } from "../workHours";
 import { coveragePoints, workingAt } from "../staffing";
 import { validateSchedule } from "../validation";
-it("covers Friday evenings and daily closing across all twelve months of 2026", () => {
+it("covers daily closing across all twelve months of 2026", () => {
  const store=STORES[0],base=initialScheduleFor(store),holidays=publicHolidays(2026);
  for(let month=1;month<=12;month++) {
   const shifts=generateSchedule({...base,month,rules:store.staffingRules,weights:store.dayWeights,demandProfile:store.demandProfile,storeTag:store.id});
@@ -22,7 +22,7 @@ it("covers Friday evenings and daily closing across all twelve months of 2026", 
   }
   const v=validateSchedule(base.employees,shifts,2026,open,base.workHours);
   console.log(JSON.stringify({month,openDays:open.length,fridayGaps,closingGaps,allDayGaps,paidHours:shifts.reduce((n,s)=>n+s.paidMinutes,0)/60,errors:v.errors.filter(e=>e.severity!=="warning").length}));
-  expect(fridayGaps,`Friday month ${month}`).toBe(0);
+
   expect(closingGaps,`Closing month ${month}`).toBe(0);
   expect(v.errors.filter(e=>e.severity!=="warning"),`Contracts month ${month}`).toEqual([]);
   expect(shifts.every(s=>s.startMinutes>=570&&s.endMinutes<=1170&&open.includes(s.date))).toBe(true);

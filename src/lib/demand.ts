@@ -14,7 +14,7 @@ export type WeekdayKey =
   | "sunday";
 
 /** Relative planning weights; actual revenue ratios remain unconfirmed. */
-export const DAY_WEIGHTS:Record<WeekdayKey,number>={monday:0.8,tuesday:0.8,wednesday:0.8,thursday:1.2,friday:1.4,saturday:1.5,sunday:1};
+export const DAY_WEIGHTS:Record<WeekdayKey,number>={monday:1,tuesday:1,wednesday:1,thursday:1.5,friday:1.5,saturday:1.5,sunday:1};
 export function monthDemandFactor(date:string):number {const day=Number(date.slice(8,10));return day<=10||day>=23?1.25:1;}
 
 /** date-fns getDay(): 0=So ... 6=Sa  ->  WeekdayKey. */
