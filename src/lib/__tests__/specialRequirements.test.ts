@@ -3,7 +3,6 @@ import {specialRules} from "../specialRequirements";
 import {generateSchedule} from "../scheduler";
 import {analyzeSchedule} from "../analyze";
 import {STORES,initialScheduleFor} from "../stores";
-import {saveState,loadState} from "../storage";
 import {switchMonth} from "../monthArchive";
 import type {SpecialRequirement} from "../../types";
 const req:SpecialRequirement={id:"test",days:["friday"],startMinutes:1020,endMinutes:1170,minStaff:2};
