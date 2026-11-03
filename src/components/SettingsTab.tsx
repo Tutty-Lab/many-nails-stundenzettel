@@ -1,3 +1,4 @@
+import { SpecialRequirementsSettings } from "./SpecialRequirementsSettings";
 import { useMemo, useState } from "react";
 import type { UseScheduleReturn } from "../hooks/useSchedule";
 import { minutesToTime, timeToMinutes } from "../lib/time";
@@ -213,6 +214,7 @@ export function SettingsTab({ store }: { store: UseScheduleReturn }) {
 
   return (
     <div className="space-y-4 max-w-3xl">
+      <SpecialRequirementsSettings store={store} />
       <section className="rounded-lg bg-white border border-slate-200 p-4 sm:p-5 shadow-sm">
         <h2 className="text-base font-semibold text-slate-900 mb-4">Cài đặt chung</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

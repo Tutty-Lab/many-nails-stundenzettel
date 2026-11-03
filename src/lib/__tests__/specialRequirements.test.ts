@@ -1,0 +1,12 @@
+import {expect,it} from "vitest";
+import {specialRules} from "../specialRequirements";
+import {generateSchedule} from "../scheduler";
+import {analyzeSchedule} from "../analyze";
+import {STORES,initialScheduleFor} from "../stores";
+import {saveState,loadState} from "../storage";
+import {switchMonth} from "../monthArchive";
+import type {SpecialRequirement} from "../../types";
+const req:SpecialRequirement={id:"test",days:["friday"],startMinutes:1020,endMinutes:1170,minStaff:2};
+it("clips required coverage, excludes owner and limits weekdays",()=>{const r=specialRules([req])[0];expect(r.weekdays).toEqual(["friday"]);expect(r.windows([{startMinutes:570,endMinutes:1140}])).toEqual([{startMinutes:1020,endMinutes:1140}]);expect(r.who!({...STORES[0].sampleEmployees()[0],ownerSupport:true})).toBe(false);expect(specialRules([{...req,endMinutes:900}])).toEqual([]);});
+it("retains requirements when switching months",()=>{const b={...initialScheduleFor(STORES[0]),specialRequirements:[req]};expect(switchMonth(b,[],2026,12).schedule.specialRequirements).toEqual([req]);});
+it("preserves employee restrictions and reports impossible coverage",()=>{const s=STORES[0],b=initialScheduleFor(s),rules=specialRules([req]);const employees=b.employees.filter(e=>!e.ownerSupport).map(e=>({...e,availableWeekdays:["monday" as const],shiftWindow:{startMinutes:570,endMinutes:840}}));const shifts=generateSchedule({...b,employees,rules,weights:s.dayWeights,storeTag:s.id});expect(shifts.every(s=>new Date(s.date+"T12:00:00").getDay()===1&&s.endMinutes<=840)).toBe(true);const a=analyzeSchedule({...b,employees,shifts,rules});expect(a.peakViolations.some(d=>d.weekday==="friday"&&d.peaks.some(p=>!p.ok&&p.required===2))).toBe(true);},60000);

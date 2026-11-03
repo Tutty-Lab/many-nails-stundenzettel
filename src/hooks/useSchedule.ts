@@ -1,3 +1,4 @@
+import { specialRules } from "../lib/specialRequirements";
 // ============================================================================
 // Zentrales State-Management (ohne externe Bibliothek). Kapselt Schedule,
 // LocalStorage-Persistenz und alle Aktionen (Generieren, Bearbeiten, Reset) –
@@ -70,6 +71,7 @@ function normalizeSchedule(raw: Schedule | undefined, store: StoreConfig): Sched
     year: raw.year ?? base.year,
     month: raw.month ?? base.month,
     workHours: normalizeWorkHours(raw.workHours ?? store.workHours),
+    specialRequirements: Array.isArray(raw.specialRequirements) ? raw.specialRequirements : [],
     dateOverrides: Array.isArray(raw.dateOverrides) ? raw.dateOverrides : [],
     employees: withSharedPersonDefaults(raw.employees ?? [], store),
     shifts: raw.shifts ?? [],
@@ -232,6 +234,7 @@ export function useSchedule(storeId: string) {
    * Das ist bewusst KEIN Validierungsfehler: der Plan ist rechnerisch korrekt,
    * es sind schlicht zu wenige Leute im Haus.
    */
+  const effectiveRules = useMemo(() => [...storeConfig.staffingRules, ...specialRules(schedule.specialRequirements)], [storeConfig, schedule.specialRequirements]);
   const analysis = useMemo(() => {
     return analyzeSchedule({
       year: schedule.year,
@@ -240,11 +243,12 @@ export function useSchedule(storeId: string) {
       overrides: overridesToMap(schedule.dateOverrides),
       employees: schedule.employees,
       shifts: schedule.shifts,
-      rules: storeConfig.staffingRules,
+      rules: effectiveRules,
       weights: storeConfig.dayWeights,
     });
   }, [
     storeConfig,
+    effectiveRules,
     schedule.year,
     schedule.month,
     schedule.workHours,
@@ -410,6 +414,7 @@ export function useSchedule(storeId: string) {
         workHours: schedule.workHours,
         overrides: overridesToMap(schedule.dateOverrides),
         employees: schedule.employees,
+        specialRequirements: schedule.specialRequirements,
         weights: storeConfig.dayWeights,
         demandProfile: storeConfig.demandProfile,
         blockedDays,
@@ -436,6 +441,7 @@ export function useSchedule(storeId: string) {
     }
   }, [
     storeConfig,
+    effectiveRules,
     schedule.year,
     schedule.month,
     schedule.workHours,
@@ -553,6 +559,7 @@ export function useSchedule(storeId: string) {
   return {
     storeId,
     storeConfig,
+    effectiveRules,
     schedule,
     originalShifts,
     validation,

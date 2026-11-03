@@ -1,7 +1,7 @@
-import type { Shift } from "../types";
+import type { SpecialRequirement, Shift } from "../types";
 import type { GenerateInput } from "./scheduler";
 
-export type ScheduleRequest = Omit<GenerateInput, "rules">;
+export type ScheduleRequest = Omit<GenerateInput, "rules"> & {specialRequirements?:SpecialRequirement[]};
 export type ScheduleResponse = { shifts: Shift[]; error?: never } | { error: string; shifts?: never };
 
 /** Run CPU-heavy planning off the UI thread. Rules contain functions, so the

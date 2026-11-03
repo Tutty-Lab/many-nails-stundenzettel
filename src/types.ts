@@ -145,7 +145,10 @@ export type Shift = {
   generated: boolean;
 };
 
+export type SpecialRequirement = { id:string; days:WeekdayKey[]; startMinutes:number; endMinutes:number; minStaff:number };
+
 export type Schedule = {
+  specialRequirements?: SpecialRequirement[];
   companyName: string;
   /** Anschrift des Betriebs (erscheint auf dem Stundenzettel). */
   address: string;
