@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import type { UseScheduleReturn } from "../hooks/useSchedule";
 import type { Employee } from "../types";
 import { StundenUebersichtPage, StundenzettelPage } from "./StundenzettelPage";
@@ -85,22 +85,6 @@ export function StundenzettelTab({
   const selectedWeek = weeks.find(w => w.weekStart === printPeriod);
   const printDates = selectedWeek?.dates;
   const printLabel = selectedWeek ? `Woche ${selectedWeek.label} · ${monthLabel(schedule.year, schedule.month)}` : undefined;
-  const saveTarget = useRef<{ createWritable(): Promise<{write(blob: Blob): Promise<void>; close(): Promise<void>}> } | null>(null);
-  const chooseSaveTarget = async (filename: string) => {
-    saveTarget.current = null;
-    const picker = (window as unknown as {showSaveFilePicker?: (options: unknown) => Promise<NonNullable<typeof saveTarget.current>>}).showSaveFilePicker;
-    if (!picker) return true;
-    try {
-      saveTarget.current = await picker.call(window, { suggestedName: filename, types: [{description: "PDF", accept: {"application/pdf": [".pdf"]}}] });
-      return true;
-    } catch (error) {
-      if ((error as Error).name === "AbortError") return false;
-      // Embedded browsers may expose the picker but disallow opening it.
-      // Keep the normal download/share path available in that case.
-      return true;
-    }
-  };
-
   const [pdfBusy, setPdfBusy] = useState(false);
   const [pdfProgress, setPdfProgress] = useState<string>("");
   /** Lỗi tạo PDF – hiện ngay trên trang (alert bị trình duyệt nhúng chặn). */
@@ -163,26 +147,7 @@ export function StundenzettelTab({
    * giữ các file lại, mỗi file một nút Lưu / Chia sẻ.
    */
   const finishPdfs = async (files: ReadyPdf[]) => {
-    if (saveTarget.current && files.length === 1) {
-      const handle = saveTarget.current;
-      saveTarget.current = null;
-      const writable = await handle.createWritable();
-      await writable.write(files[0].blob);
-      await writable.close();
-      files[0].onDelivered?.();
-      return;
-    }
-    if (inApp.inApp) {
-      setReadyPdfs(files);
-      return;
-    }
-    for (const [i, file] of files.entries()) {
-      // Kleine Pause zwischen den Downloads – sonst verwirft der Browser alle
-      // ausser dem ersten.
-      if (i > 0) await new Promise((resolve) => setTimeout(resolve, 400));
-      deliver(file.blob, file.filename);
-      file.onDelivered?.();
-    }
+    setReadyPdfs(files);
   };
   /** Tên file của một quán: tên quán đứng đầu, sau đó phần chung. */
   const fileFor = (s: UseScheduleReturn, rest: string) =>
@@ -271,8 +236,7 @@ export function StundenzettelTab({
     if (result === "shared") {
       file.onDelivered?.();
       // Đã lưu/gửi file này – các file quán khác vẫn còn nút.
-      setReadyPdfs((list) => list.filter((f) => f !== file));
-      setShareNote(null);
+      setShareNote("Đã chia sẻ PDF. Bạn vẫn có thể lưu hoặc chia sẻ lại.");
     } else if (result !== "cancelled") {
       setShareNote(
         `${inApp.name ?? "Trình duyệt này"} không cho lưu hoặc chia sẻ file. Hãy mở app bằng trình duyệt (Chrome/Safari) rồi xuất lại.`,
@@ -347,12 +311,12 @@ export function StundenzettelTab({
 
   const onPdfStundenzettel = async () => {
     const filename = `Stundenzettel_${whoTag}_${selectedWeek ? `tuan_${selectedWeek.weekStart}` : monthTag}.pdf`;
-    if (await chooseSaveTarget(fileFor(primary, filename))) await doPdf(filename, {dates: printDates, label: printLabel});
+    await doPdf(filename, {dates: printDates, label: printLabel});
   };
   const onPdfSchedule = async () => {
     const range = scheduleRangeFor("month");
     const filename = `Dienstplan_${whoTag}_thang_${monthTag}.pdf`;
-    if (range && await chooseSaveTarget(fileFor(primary, filename))) await doPdfSchedule(range, filename);
+    if (range) await doPdfSchedule(range, filename);
   };
 
   // Vùng in KHÔNG được dọn theo sự kiện "afterprint": trên Android sự kiện đó
@@ -472,14 +436,15 @@ export function StundenzettelTab({
                   onClick={() => void onSharePdf(file)}
                   className="rounded bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800"
                 >
-                  Lưu / Chia sẻ
+                  Chia sẻ PDF
                 </button>
+                <button type="button" onClick={() => { deliver(file.blob, file.filename); file.onDelivered?.(); setShareNote("Đã yêu cầu tải PDF về máy."); }} className="rounded border border-emerald-700 px-4 py-2 text-sm font-semibold text-emerald-800">Lưu PDF</button>
                 <span className="text-xs break-all">{file.filename}</span>
               </div>
             ))}
           </div>
           <p className="mt-1 text-xs">
-            Trong bảng chia sẻ chọn <b>Lưu vào Tệp</b> (iPhone) hoặc gửi qua Zalo/Mail.
+            Trong bảng chia sẻ chọn <b>Lưu vào Tệp</b> (iPhone) hoặc gửi qua Messages, Zalo, Mail.
           </p>
           {shareNote && (
             <div className="mt-2 rounded border border-amber-300 bg-amber-50 p-2 text-amber-900">
