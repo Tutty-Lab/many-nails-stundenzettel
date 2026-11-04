@@ -8,7 +8,7 @@ import type { DemandBand } from "./staffing";
 import type { Employee, Shift } from "../types";
 import type { OverrideMap, WorkHoursConfig } from "./workHours";
 import type { StaffingRule } from "./staffing";
-import type { WeekdayKey } from "./demand";
+import type { WeekdayKey, BusyDateRange } from "./demand";
 import { generateWeeklySchedule } from "./weeklyScheduler";
 
 export type GenerateInput = {
@@ -28,6 +28,7 @@ export type GenerateInput = {
   /** Tagesgewichte dieser Filiale. */
   weights?: Record<WeekdayKey, number>;
   demandProfile?: readonly DemandBand[];
+  busyDateRanges?: readonly BusyDateRange[];
   /** Tage, an denen jemand schon im anderen Laden arbeitet. */
   blockedDays?: Record<string, readonly string[]>;
   /** Kennung der Filiale (interner Cache). */

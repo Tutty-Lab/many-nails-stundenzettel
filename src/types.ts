@@ -3,7 +3,7 @@
 // niemals mit Fließkomma-Stunden.
 // ============================================================================
 
-import type { WeekdayKey } from "./lib/demand";
+import type { WeekdayKey, BusyDateRange } from "./lib/demand";
 import type { DateOverride, DayWindow, WorkHoursConfig } from "./lib/workHours";
 
 /**
@@ -148,6 +148,7 @@ export type Shift = {
 export type SpecialRequirement = { id:string; days:WeekdayKey[]; startMinutes:number; endMinutes:number; minStaff:number };
 
 export type Schedule = {
+  busyDateRanges?: BusyDateRange[];
   specialRequirements?: SpecialRequirement[];
   companyName: string;
   /** Anschrift des Betriebs (erscheint auf dem Stundenzettel). */

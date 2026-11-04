@@ -1,5 +1,5 @@
 import type { Employee, Schedule } from "../types";
-import { type WeekdayKey } from "./demand";
+import { type WeekdayKey, DEFAULT_BUSY_DATE_RANGES } from "./demand";
 import { type DemandBand, type StaffingRule } from "./staffing";
 import { DEFAULT_WORK_HOURS } from "./workHours";
 import { manyNailsEmployees } from "./restaurantData";
@@ -20,4 +20,4 @@ export function loadStoreId(){try{const saved=localStorage.getItem(STORE_KEY);if
 export function saveStoreId(id:string){try{localStorage.setItem(STORE_KEY,id);}catch{}}
 export function storeById(id:string){return STORES.find(s=>s.id===id)??STORES[0];}
 export function withSharedPersonDefaults(employees:Employee[],_store:StoreConfig){return employees;}
-export function initialScheduleFor(store:StoreConfig):Schedule{return {companyName:store.name,address:store.address,year:2026,month:11,workHours:structuredClone(store.workHours??DEFAULT_WORK_HOURS),dateOverrides:[],employees:store.sampleEmployees(),shifts:[]};}
+export function initialScheduleFor(store:StoreConfig):Schedule{return {companyName:store.name,address:store.address,year:2026,month:11,workHours:structuredClone(store.workHours??DEFAULT_WORK_HOURS),dateOverrides:[],busyDateRanges:DEFAULT_BUSY_DATE_RANGES.map(r=>({...r})),employees:store.sampleEmployees(),shifts:[]};}

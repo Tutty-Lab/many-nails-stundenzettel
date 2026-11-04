@@ -1,7 +1,7 @@
 import { busyKitchenTarget } from "./coveragePolicy";
 import type { DemandBand } from "./staffing";
 import type { Employee, PreferredWindow, Shift } from "../types";
-import { monthDemandFactor, DAY_WEIGHTS, datesOfMonth, parseIsoDate, weekdayKeyOf, type WeekdayKey } from "./demand";
+import { monthDemandFactor, DAY_WEIGHTS, datesOfMonth, parseIsoDate, weekdayKeyOf, type WeekdayKey, type BusyDateRange } from "./demand";
 import { monthlyTargetMinutesFor, weeklyBudgetMinutes, weeklyTargetMinutes } from "./contract";
 import { calculatePause } from "./time";
 import { mayWorkOn } from "./availability";
@@ -42,6 +42,7 @@ type Ctx = {
   rules: readonly StaffingRule[];
   weights: Record<WeekdayKey, number>;
   demandProfile?: readonly DemandBand[];
+  busyDateRanges?: readonly BusyDateRange[];
   /** employeeId -> Daten, an denen die Person im anderen Laden arbeitet. */
   blocked: Map<string, Set<string>>;
   /** Teil des Cache-Schlüssels, damit Filialen nicht dasselbe Tagesmodell nutzen. */
@@ -64,6 +65,7 @@ type WeeklyInput = {
   /** Tagesgewichte dieser Filiale; fehlt = DAY_WEIGHTS. */
   weights?: Record<WeekdayKey, number>;
   demandProfile?: readonly DemandBand[];
+  busyDateRanges?: readonly BusyDateRange[];
   /** Wer im anderen Laden schon arbeitet: employeeId -> ISO-Daten. */
   blockedDays?: Record<string, readonly string[]>;
   /** Kennung der Filiale (nur für den internen Cache). */
@@ -486,7 +488,7 @@ function chooseWeekWith(
   // Ideale Dienstlänge je Tag folgt demselben Faktor wie das Tagesziel
   // (Gewicht × Öffnungsdauer, Tab „Tài liệu") – bei gleicher Wochensumme.
   const factorOf = (date: string) =>
-    ctx.weights[effectiveWeekdayKey(date, holidays)] * monthDemandFactor(date) * openMinutesOfBlocks(days.get(date)!.blocks);
+    ctx.weights[effectiveWeekdayKey(date, holidays)] * monthDemandFactor(date, ctx.busyDateRanges) * openMinutesOfBlocks(days.get(date)!.blocks);
   const averageFactor = eligible.reduce((sum, date) => sum + factorOf(date), 0) / eligible.length;
 
   let states = new Map<number, Allocation>([[0, { paid: 0, cost: zeroCost(), mask: 0, choices: [] }]]);
@@ -904,6 +906,7 @@ export function generateWeeklySchedule(input: WeeklyInput, existing: Shift[] = [
     rules: input.rules ?? STAFFING_RULES,
     weights: input.weights ?? DAY_WEIGHTS,
     demandProfile: input.demandProfile,
+    busyDateRanges: input.busyDateRanges,
     blocked: new Map(Object.entries(input.blockedDays ?? {}).map(([id, dates]) => [id, new Set(dates)])),
     tag: `${input.storeTag ?? "default"}|${JSON.stringify(input.demandProfile ?? null)}`,
     windows: new Map(
@@ -937,7 +940,7 @@ export function generateWeeklySchedule(input: WeeklyInput, existing: Shift[] = [
       const weekday = effectiveWeekdayKey(date, holidays);
       for (const block of day.blocks) for (let minute = block.startMinutes; minute < block.endMinutes; minute += SLOT) {
         slots.push({ date, minute, duration: Math.min(SLOT, block.endMinutes - minute),
-          weight: ctx.weights[weekday] * monthDemandFactor(date), peak: workloadAt(minute, weekday, ctx.weights, input.demandProfile) === peakLevel });
+          weight: ctx.weights[weekday] * monthDemandFactor(date, input.busyDateRanges), peak: workloadAt(minute, weekday, ctx.weights, input.demandProfile) === peakLevel });
       }
     }
     const capacity = { service: 0, kitchen: 0, flexible: 0 };
@@ -1007,6 +1010,7 @@ export function generateWeeklySchedule(input: WeeklyInput, existing: Shift[] = [
       (date) => effectiveWeekdayKey(date, holidays),
       (date) => openMinutesOfBlocks(days.get(date)!.blocks),
       ctx.weights,
+      input.busyDateRanges,
     );
     for (const [date, hours] of targets) dailyTargets.set(date, hours);
   };

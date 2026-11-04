@@ -22,7 +22,7 @@ import {
   type DateOverride,
   type OverrideMap,
 } from "../lib/workHours";
-import { datesOfMonth } from "../lib/demand";
+import { datesOfMonth, DEFAULT_BUSY_DATE_RANGES } from "../lib/demand";
 import { publicHolidays } from "../lib/holidays";
 import { initialScheduleFor, storeById, withSharedPersonDefaults, type StoreConfig } from "../lib/stores";
 import { applyMigrations } from "../lib/migrations";
@@ -71,6 +71,7 @@ function normalizeSchedule(raw: Schedule | undefined, store: StoreConfig): Sched
     year: raw.year ?? base.year,
     month: raw.month ?? base.month,
     workHours: normalizeWorkHours(raw.workHours ?? store.workHours),
+    busyDateRanges: Array.isArray(raw.busyDateRanges) ? raw.busyDateRanges : DEFAULT_BUSY_DATE_RANGES.map(r => ({ ...r })),
     specialRequirements: Array.isArray(raw.specialRequirements) ? raw.specialRequirements : [],
     dateOverrides: Array.isArray(raw.dateOverrides) ? raw.dateOverrides : [],
     employees: withSharedPersonDefaults(raw.employees ?? [], store),
@@ -417,6 +418,7 @@ export function useSchedule(storeId: string) {
         specialRequirements: schedule.specialRequirements,
         weights: storeConfig.dayWeights,
         demandProfile: storeConfig.demandProfile,
+        busyDateRanges: schedule.busyDateRanges,
         blockedDays,
         storeTag: storeConfig.id,
         seed: `${year}-${month}-${Date.now()}-${genNonce.current++}`,
@@ -447,6 +449,7 @@ export function useSchedule(storeId: string) {
     schedule.workHours,
     schedule.dateOverrides,
     schedule.employees,
+    schedule.busyDateRanges,
   ]);
 
   const resetToOriginal = useCallback(() => {

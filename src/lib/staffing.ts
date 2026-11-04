@@ -1,6 +1,6 @@
 import { busyKitchenTarget } from "./coveragePolicy";
 import type { Employee, Shift } from "../types";
-import { monthDemandFactor, DAY_WEIGHTS, type WeekdayKey } from "./demand";
+import { monthDemandFactor, DAY_WEIGHTS, type WeekdayKey, type BusyDateRange } from "./demand";
 import type { DayBlocks, DayWindow } from "./workHours";
 
 export type StaffingWindow = {
@@ -248,8 +248,9 @@ export function weightedDailyTargets(
   weekdayOf: (date: string) => WeekdayKey,
   openMinutesOf?: (date: string) => number,
   weights: Record<WeekdayKey, number> = DAY_WEIGHTS,
+  busyDateRanges?: readonly BusyDateRange[],
 ): Map<string, number> {
-  const factor = (date: string) => weights[weekdayOf(date)] * monthDemandFactor(date) * (openMinutesOf ? openMinutesOf(date) : 1);
+  const factor = (date: string) => weights[weekdayOf(date)] * monthDemandFactor(date, busyDateRanges) * (openMinutesOf ? openMinutesOf(date) : 1);
   const sum = dates.reduce((acc, date) => acc + factor(date), 0);
   return new Map(dates.map((date) => [date, sum > 0 ? total * factor(date) / sum : 0]));
 }

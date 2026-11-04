@@ -15,7 +15,12 @@ export type WeekdayKey =
 
 /** Relative planning weights; actual revenue ratios remain unconfirmed. */
 export const DAY_WEIGHTS:Record<WeekdayKey,number>={monday:1,tuesday:1,wednesday:1,thursday:1.5,friday:1.5,saturday:1.5,sunday:1};
-export function monthDemandFactor(date:string):number {const day=Number(date.slice(8,10));return day<=10||day>=23?1.25:1;}
+export type BusyDateRange = { startDay: number; endDay: number | null; factor: number };
+export const DEFAULT_BUSY_DATE_RANGES: BusyDateRange[] = [{startDay:1,endDay:10,factor:1.25},{startDay:23,endDay:null,factor:1.25}];
+export function monthDemandFactor(date:string, ranges: readonly BusyDateRange[] = DEFAULT_BUSY_DATE_RANGES):number {
+ const day=Number(date.slice(8,10));
+ return Math.max(1,...ranges.filter(r=>day>=r.startDay&&day<=(r.endDay??31)).map(r=>r.factor));
+}
 
 /** date-fns getDay(): 0=So ... 6=Sa  ->  WeekdayKey. */
 const WEEKDAY_BY_GETDAY: Record<number, WeekdayKey> = {
