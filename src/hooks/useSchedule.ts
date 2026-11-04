@@ -28,6 +28,7 @@ import { initialScheduleFor, storeById, withSharedPersonDefaults, type StoreConf
 import { applyMigrations } from "../lib/migrations";
 import { archiveFromLegacySavedPlans, listSavedMonths, mergeArchives, switchMonth } from "../lib/monthArchive";
 import { isEmployedOn } from "../lib/availability";
+import { timesheetFingerprint } from "../lib/timesheetExport";
 
 /**
  * Steht in diesem Stand überhaupt etwas? Maßstab sind Mitarbeiter und
@@ -72,6 +73,7 @@ function normalizeSchedule(raw: Schedule | undefined, store: StoreConfig): Sched
     month: raw.month ?? base.month,
     workHours: normalizeWorkHours(raw.workHours ?? store.workHours),
     busyDateRanges: Array.isArray(raw.busyDateRanges) ? raw.busyDateRanges : DEFAULT_BUSY_DATE_RANGES.map(r => ({ ...r })),
+    pdfExports: raw.pdfExports ?? [],
     specialRequirements: Array.isArray(raw.specialRequirements) ? raw.specialRequirements : [],
     dateOverrides: Array.isArray(raw.dateOverrides) ? raw.dateOverrides : [],
     employees: withSharedPersonDefaults(raw.employees ?? [], store),
@@ -559,7 +561,15 @@ export function useSchedule(storeId: string) {
     });
   }, []);
 
+  const recordPdfExport = useCallback((kind: "timesheet" | "schedule", dates: string[], fingerprint?: string) => {
+    if (!dates.length) return;
+    const sorted = [...dates].sort();
+    const entry = {kind, from: sorted[0], to: sorted[sorted.length - 1], exportedAt: new Date().toISOString(), fingerprint};
+    updateMeta({pdfExports: [...(latest.current.schedule.pdfExports ?? []), entry]});
+  }, [updateMeta]);
+
   return {
+    recordPdfExport,
     storeId,
     storeConfig,
     effectiveRules,

@@ -1,5 +1,7 @@
 import type { UseScheduleReturn } from "../hooks/useSchedule";
 import { minutesToShortHours } from "../lib/time";
+import { datesOfMonth } from "../lib/demand";
+import { dateRangeLabel } from "../lib/dateLabel";
 
 /**
  * Danh sách „Lịch đã lưu" (theo Thienlong/Vietpho) – mở từ ☰ Menu. Mỗi tháng
@@ -36,13 +38,15 @@ export function SavedSchedulesPanel({
       ) : (
         <ul className="divide-y divide-slate-100">
           {[...savedMonths].reverse().map((m) => (
-            <li key={m.key} className="flex items-center gap-3 px-3 py-2 text-sm">
-              <span className="w-24 shrink-0 font-medium text-slate-900">
+            <li key={m.key} className="flex flex-wrap items-center gap-3 px-3 py-2 text-sm">
+              <span className="shrink-0 font-medium text-slate-900">
                 Tháng {m.month}/{m.year}
+                <span className="block text-xs font-normal text-slate-500">{dateRangeLabel(datesOfMonth(m.year, m.month))}</span>
               </span>
               <span className="min-w-0 flex-1 text-slate-500">
                 {m.shiftCount} ca · {minutesToShortHours(m.totalMinutes)}
                 {m.savedAt ? ` · lưu ${formatSavedAt(m.savedAt)}` : ""}
+                {(store.schedule.pdfExports ?? []).filter(e => e.from.startsWith(m.key)).map((e, i) => <span key={i} className="block text-xs">Đã xuất {e.kind === "timesheet" ? "chấm công" : "lịch"}: {dateRangeLabel([e.from, e.to])} · {formatSavedAt(e.exportedAt)}</span>)}
               </span>
               {m.current ? (
                 <span className="shrink-0 rounded-full bg-slate-900 px-3 py-1 text-xs text-white">Đang mở</span>
@@ -73,5 +77,5 @@ function formatSavedAt(iso: string): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";
   const p = (n: number) => String(n).padStart(2, "0");
-  return `${p(d.getDate())}.${p(d.getMonth() + 1)} ${p(d.getHours())}:${p(d.getMinutes())}`;
+  return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;
 }

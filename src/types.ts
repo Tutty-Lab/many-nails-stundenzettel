@@ -45,6 +45,7 @@ export type Employee = {
   monthlySalary?: number;
   quotaSource?: "hours" | "salary";
   hourlyRate?: number;
+  salaryInput?: "monthly" | "hourly";
   role?: string;
   referenceDays?: number;
   referenceEstimated?: boolean;
@@ -148,6 +149,7 @@ export type Shift = {
 export type SpecialRequirement = { id:string; days:WeekdayKey[]; startMinutes:number; endMinutes:number; minStaff:number };
 
 export type Schedule = {
+  pdfExports?: { kind: "timesheet" | "schedule"; from: string; to: string; exportedAt: string; fingerprint?: string }[];
   busyDateRanges?: BusyDateRange[];
   specialRequirements?: SpecialRequirement[];
   companyName: string;

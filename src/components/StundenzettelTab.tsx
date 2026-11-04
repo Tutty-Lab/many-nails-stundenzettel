@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { UseScheduleReturn } from "../hooks/useSchedule";
 import type { Employee } from "../types";
 import { StundenUebersichtPage, StundenzettelPage } from "./StundenzettelPage";
@@ -16,6 +16,9 @@ import { isScheduleYearAllowed, SCHEDULE_YEAR_RANGE_LABEL } from "../lib/years";
 import { weeksOfMonth } from "../lib/weeks";
 import { datesOfMonth } from "../lib/demand";
 import { monthLabel } from "../lib/shiftOps";
+import { timesheetFingerprint, staleExports } from "../lib/timesheetExport";
+import { dateRangeLabel } from "../lib/dateLabel";
+type ReadyPdf = { blob: Blob; filename: string; onDelivered?: () => void };
 
 /** Dienstplan-Ausdruck (Monat oder eine Woche), evtl. auf eine Person gefiltert. */
 type ScheduleRange = {
@@ -104,7 +107,8 @@ export function StundenzettelTab({
   const [pdfError, setPdfError] = useState<string | null>(null);
   /** Trình duyệt nhúng: PDF đã tạo xong, chờ người dùng bấm Lưu / Chia sẻ. */
   // Je Quán eine eigene Datei – im eingebetteten Browser je Datei ein Knopf.
-  const [readyPdfs, setReadyPdfs] = useState<{ blob: Blob; filename: string }[]>([]);
+  const [readyPdfs, setReadyPdfs] = useState<ReadyPdf[]>([]);
+  const [dismissedWarning, setDismissedWarning] = useState("");
   const readyPdf = readyPdfs.length > 0;
   const [shareNote, setShareNote] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -138,6 +142,10 @@ export function StundenzettelTab({
   const previewEmployee =
     previewStore.activeEmployees.find((e) => e.id === (wholeStore ? previewId : whoEmpId)) ?? null;
   const previewEmployees = previewEmployee ? [previewEmployee] : previewStore.activeEmployees;
+  const fingerprint = timesheetFingerprint(previewStore.schedule, previewStore.schedule.employees);
+  const outdated = staleExports(previewStore.schedule, fingerprint);
+  const warningKey = JSON.stringify([fingerprint, outdated]);
+  useEffect(() => { setReadyPdfs([]); }, [fingerprint]);
   const whoTag = wholeStore ? "ca_quan" : safeFileName(previewEmployee?.name ?? who);
 
   const startPdf = () => {
@@ -154,13 +162,14 @@ export function StundenzettelTab({
    * Rechner/Chrome/Safari: tải thẳng lần lượt từng file. Trình duyệt nhúng:
    * giữ các file lại, mỗi file một nút Lưu / Chia sẻ.
    */
-  const finishPdfs = async (files: { blob: Blob; filename: string }[]) => {
+  const finishPdfs = async (files: ReadyPdf[]) => {
     if (saveTarget.current && files.length === 1) {
       const handle = saveTarget.current;
       saveTarget.current = null;
       const writable = await handle.createWritable();
       await writable.write(files[0].blob);
       await writable.close();
+      files[0].onDelivered?.();
       return;
     }
     if (inApp.inApp) {
@@ -172,6 +181,7 @@ export function StundenzettelTab({
       // ausser dem ersten.
       if (i > 0) await new Promise((resolve) => setTimeout(resolve, 400));
       deliver(file.blob, file.filename);
+      file.onDelivered?.();
     }
   };
   /** Tên file của một quán: tên quán đứng đầu, sau đó phần chung. */
@@ -194,7 +204,7 @@ export function StundenzettelTab({
     // Kurzer Yield, damit „Đang tạo PDF…" zuerst sichtbar wird.
     await new Promise((resolve) => setTimeout(resolve, 0));
     try {
-      const files: { blob: Blob; filename: string }[] = [];
+      const files: ReadyPdf[] = [];
       let done = 0;
       for (const s of stores) {
         const employees = chosenFor(s);
@@ -206,7 +216,8 @@ export function StundenzettelTab({
           (current) => progress(offset + current, chosenCount),
         );
         done += employees.length;
-        files.push({ blob: doc.output("blob"), filename: fileFor(s, filename) });
+        const dates = sz?.dates ?? datesOfMonth(s.schedule.year, s.schedule.month);
+        files.push({ blob: doc.output("blob"), filename: fileFor(s, filename), onDelivered: () => s.recordPdfExport("timesheet", dates, timesheetFingerprint(s.schedule, s.schedule.employees)) });
       }
       await finishPdfs(files);
     } catch (err) {
@@ -239,11 +250,13 @@ export function StundenzettelTab({
             }],
             range.layout,
           );
-          return { blob: doc.output("blob"), filename: fileFor(s, filename) };
+          return { blob: doc.output("blob"), filename: fileFor(s, filename), onDelivered: () => {
+            s.recordPdfExport("schedule", range.dates);
+            if (range.weekStart) s.markWeekPrinted(range.weekStart);
+          } };
         });
       await finishPdfs(files);
       // Nur der Quán, der wirklich ausgegeben wurde, gilt als gedruckt/gesperrt.
-      if (range.weekStart) for (const s of exported) s.markWeekPrinted(range.weekStart);
     } catch (err) {
       setPdfError(errorText(err));
     } finally {
@@ -253,9 +266,10 @@ export function StundenzettelTab({
   }
 
   /** Gọi trực tiếp trong lúc bấm – bảng Chia sẻ cần thao tác người dùng còn "mới". */
-  async function onSharePdf(file: { blob: Blob; filename: string }) {
+  async function onSharePdf(file: ReadyPdf) {
     const result = await sharePdf(file.blob, file.filename);
     if (result === "shared") {
+      file.onDelivered?.();
       // Đã lưu/gửi file này – các file quán khác vẫn còn nút.
       setReadyPdfs((list) => list.filter((f) => f !== file));
       setShareNote(null);
@@ -400,6 +414,18 @@ export function StundenzettelTab({
           </button>
         </div>
       </div>
+
+      {outdated.length > 0 && dismissedWarning !== warningKey && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+        <section role="alertdialog" aria-modal="true" aria-labelledby="reprint-title" className="w-full max-w-lg rounded-xl bg-white p-5 shadow-xl space-y-3">
+          <h3 id="reprint-title" className="font-bold text-amber-900">Cần xuất lại PDF bảng chấm công</h3>
+          <p className="text-sm">{schedule.companyName} · Tháng {schedule.month}/{schedule.year}</p>
+          <p className="text-sm">Thông tin nhân viên hoặc lịch làm đã thay đổi sau lần xuất PDF. Bản cũ không còn khớp dữ liệu hiện tại.</p>
+          <p className="text-sm font-medium">Các kỳ cần xuất lại:</p>
+          <ul className="max-h-48 overflow-auto list-disc pl-5 text-sm">{outdated.map(e => <li key={e.from+e.to}>{dateRangeLabel([e.from,e.to])}</li>)}</ul>
+          <p className="text-sm">Chọn lại các kỳ trên rồi xuất PDF mới để thay thế bản cũ. Cảnh báo chỉ hết sau khi xuất lại đủ các kỳ bị ảnh hưởng.</p>
+          <button autoFocus type="button" className="rounded bg-slate-900 px-4 py-2 text-sm text-white" onClick={() => setDismissedWarning(warningKey)}>Đã hiểu</button>
+        </section>
+      </div>}
 
       {inApp.inApp && !readyPdf && (
         <div className="mb-3 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
