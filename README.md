@@ -6,7 +6,7 @@ Wormser Straße 23, 67227 Frankenthal.
 - Giờ làm: T2–T7 09:30–19:30; Chủ nhật đóng cửa. Ngày lễ Rheinland-Pfalz đóng cửa.
 - T2–T4 vắng hơn; T5–T7 đông hơn đông hơn. Từ 14:00 đông; buổi sáng vẫn có khách.
 - Ngày 01–10 và 23–cuối tháng đông hơn.
-- Ít nhất 2 nhân viên, không tính chủ. Ít nhất 1 nhân viên đến 19:30; tối thứ Sáu ít nhất 2.
+- 09:30–14:00 tối thiểu 1 nhân viên; từ 14:00 khuyến khích 2 nhân viên, không tính chủ.
 - Chủ thường có mặt; khi nghỉ, tắt hỗ trợ chủ trong tab nhân viên.
 
 Bảng lương không ghi giờ hợp đồng. App quy đổi tạm tính theo Brutto ÷ 13,90 €/h: 603 € ≈ 43,38 h; 1.700 € ≈ 122,30 h; 1.200 € ≈ 86,33 h; 1.200 € ≈ 86,33 h; 1.500 € ≈ 107,91 h/tháng. Các số giờ này là ước tính, cần xác nhận lại với chủ trước khi dùng chính thức.

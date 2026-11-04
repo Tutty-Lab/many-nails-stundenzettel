@@ -6,7 +6,7 @@ export const OPERATING_PARAMS:Array<[string,string]>=[
  ["Starke Wochentage","Donnerstag–Samstag"],
  ["Starke Monatstage","01.–10. und 23.–Monatsende"],
  ["Feiertage","Gesetzliche Feiertage Rheinland-Pfalz geschlossen"],
- ["Besetzung","Mindestens 2 Mitarbeitende, ohne Inhaber"],
+ ["Besetzung","09:30–14:00 mindestens 1 Mitarbeiter; ab 14:00 möglichst 2, ohne Inhaber"],
  ["Spätdienst","Mindestens 1 Mitarbeiter bis 19:30; Freitagabend mindestens 2"],
  ["Inhaber","Meist anwesend, gelegentlich abwesend"],
  ["Vertragsstunden","Vorläufig: Brutto / 13,90 EUR pro Stunde"],

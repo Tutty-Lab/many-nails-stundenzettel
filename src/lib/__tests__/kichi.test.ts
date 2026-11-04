@@ -16,7 +16,7 @@ it("requires two employees without counting the owner, one through closing",()=>
  expect(employees.filter(e=>!e.ownerSupport).every(e=>e.targetMinutes>0)).toBe(true);
  expect(employees.find(e=>e.id==="mn-2")?.targetMinutes).toBe(7338);
  const windows=staffingWindows([{startMinutes:570,endMinutes:1170}],"friday",s.staffingRules);
- expect(windows[0].minStaff).toBe(2);expect(windows.every(w=>w.who?.(owner)===false)).toBe(true);
+ expect(windows[0].minStaff).toBe(1);expect(windows.every(w=>w.who?.(owner)===false)).toBe(true);
  expect(windows.at(-1)?.endMinutes).toBe(1170);
  expect(initialScheduleFor(s).companyName).toBe("Many Nails");
 });
