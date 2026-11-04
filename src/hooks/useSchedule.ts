@@ -28,7 +28,6 @@ import { initialScheduleFor, storeById, withSharedPersonDefaults, type StoreConf
 import { applyMigrations } from "../lib/migrations";
 import { archiveFromLegacySavedPlans, listSavedMonths, mergeArchives, switchMonth } from "../lib/monthArchive";
 import { isEmployedOn } from "../lib/availability";
-import { timesheetFingerprint } from "../lib/timesheetExport";
 
 /**
  * Steht in diesem Stand überhaupt etwas? Maßstab sind Mitarbeiter und
