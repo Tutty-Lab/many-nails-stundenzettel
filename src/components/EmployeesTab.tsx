@@ -1,4 +1,4 @@
-import { DEFAULT_HOURLY_RATE } from "../lib/payroll";
+import { DEFAULT_HOURLY_RATE, salaryToMinutes } from "../lib/payroll";
 import { useMemo, useState } from "react";
 import type { UseScheduleReturn } from "../hooks/useSchedule";
 import type { Employee, EmploymentType, Station } from "../types";
@@ -43,7 +43,8 @@ type Draft = {
   hours: string;
   monthlySalary: string;
   hourlyRate: string;
-  salaryInput: "monthly" | "hourly";
+  /** „Cách tính giờ / tháng": aus Lohn (Lương tháng ÷ Lương giờ) oder direkt eingegeben. */
+  quotaSource: "salary" | "hours";
   /** „Số ngày làm / tuần": "" = tự động, sonst 1..6 (maxDaysPerWeek). */
   maxDays: string;
   /** „Ngày nghỉ cố định" – die Kehrseite von availableWeekdays. */
@@ -73,6 +74,16 @@ type OtherStore = { storeId: string; shortName: string; employees: readonly Empl
 const hoursText = (n: number) => String(n).replace(".", ",");
 const parseHours = (text: string) => Number(text.trim().replace(",", "."));
 
+/** Chế độ „Nhập lương": giờ/tháng = lương tháng ÷ lương giờ; null khi chưa đủ số hợp lệ. */
+export function salaryMinutesFromDraft(d: Pick<Draft, "monthlySalary" | "hourlyRate">): number | null {
+  if (!d.monthlySalary.trim() || !d.hourlyRate.trim()) return null;
+  try {
+    return salaryToMinutes(parseHours(d.monthlySalary), parseHours(d.hourlyRate));
+  } catch {
+    return null;
+  }
+}
+
 export function draftFrom(emp?: Employee, partners: PartnerChoice = {}, monthlyMinutes?: number): Draft {
   const available = emp?.availableWeekdays;
   return {
@@ -82,7 +93,8 @@ export function draftFrom(emp?: Employee, partners: PartnerChoice = {}, monthlyM
     station: "BOTH",
     hours: emp ? hoursText(Math.round(((monthlyMinutes ?? emp.targetMinutes) / 60) * 100) / 100) : "169",
     monthlySalary: emp?.monthlySalary != null ? hoursText(emp.monthlySalary) : "",
-    salaryInput: emp?.salaryInput ?? (emp?.monthlySalary != null ? "monthly" : "hourly"),
+    // Ältere Einträge ohne quotaSource: mit Monatslohn → „Nhập lương", sonst „Nhập tổng giờ".
+    quotaSource: emp ? emp.quotaSource ?? (emp.monthlySalary != null ? "salary" : "hours") : "salary",
     hourlyRate: emp ? (emp.hourlyRate == null ? "" : hoursText(emp.hourlyRate)) : hoursText(DEFAULT_HOURLY_RATE),
     maxDays: emp?.maxDaysPerWeek ? String(Math.min(6, emp.maxDaysPerWeek)) : "",
     daysOff: available && available.length > 0 ? WEEKDAY_ORDER.filter((day) => !available.includes(day)) : [],
@@ -143,7 +155,11 @@ function windowsFromDraft(d: Draft): Employee["preferredWindows"] {
 
 /** Entwurf -> Mitarbeiter-Felder (ohne id). */
 export function draftToEmployee(d: Draft): Omit<Employee, "id"> {
-  const hours = Math.max(0, parseHours(d.hours) || 0);
+  const targetMinutes = d.ownerSupport
+    ? 0
+    : d.quotaSource === "salary"
+      ? salaryMinutesFromDraft(d) ?? 0
+      : Math.round(Math.max(0, parseHours(d.hours) || 0) * 60);
   const amount = parseHours(d.monthlySalary);
   const rate = parseHours(d.hourlyRate);
   const tage = Number(d.maxDays);
@@ -155,13 +171,12 @@ export function draftToEmployee(d: Draft): Omit<Employee, "id"> {
     employmentType: d.employmentType,
     ownerSupport: d.ownerSupport || undefined,
     station: "BOTH",
-    quotaSource: "hours",
+    quotaSource: d.quotaSource,
     unavailableRanges: d.unavailableRanges.filter(range => range.startDate && range.endDate && range.startDate <= range.endDate),
-    targetMinutes: d.ownerSupport ? 0 : Math.round(hours * 60),
+    targetMinutes,
     monthlySalary: Number.isFinite(amount) && amount >= 0 && d.monthlySalary.trim() !== "" ? amount : undefined,
     hourlyRate: Number.isFinite(rate) && rate > 0 ? rate : undefined,
     weeklyHours: undefined,
-    salaryInput: d.salaryInput,
     // Ende muss nach Beginn liegen – sonst die feste Schicht ignorieren, statt
     // eine kaputte Zeitspanne zu speichern.
     fixedShift:
@@ -235,7 +250,7 @@ export function EmployeesTab({ store, allStores }: { store: UseScheduleReturn; a
         </button>
       </div>
       <p className="text-xs text-slate-500 mb-4">
-        Nhập giờ/tháng; lương tháng và lương giờ được lưu riêng. Định mức tháng được phân bổ trên toàn tháng theo ngày có thể làm và nhu cầu. Tháng này quán mở <b>{openDays}</b> ngày, mỗi người tối
+        Giờ/tháng tính theo một trong hai cách: <b>Nhập lương</b> (giờ = lương tháng ÷ lương giờ, tự tính) hoặc <b>Nhập tổng giờ</b> (nhập thẳng số giờ). Định mức tháng được phân bổ trên toàn tháng theo ngày có thể làm và nhu cầu. Tháng này quán mở <b>{openDays}</b> ngày, mỗi người tối
         đa 6 ngày liên tiếp và 8 giờ công mỗi ngày. Bấm vào một người để sửa.
       </p>
 
@@ -559,7 +574,9 @@ function EmployeeSheet({
   const allDaysOff = d.daysOff.length === 7;
   const preferencesBad = d.windows.some(w => w.days.length === 0 || !w.start || !w.end || w.end <= w.start);
   const periodBad = Boolean(d.startDate && d.endDate && d.endDate < d.startDate);
-  const hoursBad = !d.hours.trim() || !Number.isFinite(parseHours(d.hours)) || parseHours(d.hours)<0;
+  const salaryMinutes = salaryMinutesFromDraft(d);
+  const salaryBad = !d.ownerSupport && d.quotaSource === "salary" && salaryMinutes == null;
+  const hoursBad = !d.ownerSupport && d.quotaSource === "hours" && (!d.hours.trim() || !Number.isFinite(parseHours(d.hours)) || parseHours(d.hours)<0);
   const windowBad = d.limited && (!d.windowStart || !d.windowEnd || d.windowEnd <= d.windowStart);
   const shiftMinH = parseHours(d.shiftMin);
   const shiftMaxH = parseHours(d.shiftMax);
@@ -617,25 +634,51 @@ function EmployeeSheet({
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <label className="block min-w-0">
-                <FieldLabel>Loại lương</FieldLabel>
-                <select aria-label="Loại lương" className={`${inputClass} w-full`} value={d.salaryInput} onChange={e => set("salaryInput", e.target.value as "monthly" | "hourly")}>
-                  <option value="monthly">Lương theo tháng</option>
-                  <option value="hourly">Lương theo giờ</option>
-                </select>
-              </label>
-              <label className="block min-w-0">
-                <FieldLabel>{d.salaryInput === "monthly" ? "Lương tháng (€)" : "Lương giờ (€/h)"}</FieldLabel>
-                <HoursInput value={d.salaryInput === "monthly" ? d.monthlySalary : d.hourlyRate} onChange={v => set(d.salaryInput === "monthly" ? "monthlySalary" : "hourlyRate", v)} placeholder={d.salaryInput === "monthly" ? "VD 1700" : "13,90"} unit={d.salaryInput === "monthly" ? "€" : "€/h"} />
-              </label>
-            </div>
-            {d.ownerSupport && <p className="text-sm text-slate-600">Chủ thường có mặt; tắt hỗ trợ khi nghỉ. Không tính vào 2 nhân viên tối thiểu hoặc giờ hợp đồng.</p>}
-            <label className="block">
-              <FieldLabel>Giờ / tháng</FieldLabel>
-              <HoursInput value={d.hours} onChange={v => set("hours", v)} placeholder="VD 169" />
-              {hoursBad && <p role="alert" className="mt-1 text-xs text-rose-600">Giờ phải là số từ 0 trở lên.</p>}
-            </label>
+            {d.ownerSupport ? (
+              <p className="text-sm text-slate-600">Chủ thường có mặt; tắt hỗ trợ khi nghỉ. Không tính vào 2 nhân viên tối thiểu hoặc giờ hợp đồng.</p>
+            ) : (
+              <>
+                <div>
+                  <FieldLabel>Cách tính giờ / tháng</FieldLabel>
+                  <Segmented<Draft["quotaSource"]>
+                    value={d.quotaSource}
+                    onChange={(v) => set("quotaSource", v)}
+                    options={[
+                      { value: "salary", label: "Nhập lương" },
+                      { value: "hours", label: "Nhập tổng giờ" },
+                    ]}
+                  />
+                </div>
+                {d.quotaSource === "salary" ? (
+                  <>
+                    <div className="grid grid-cols-2 gap-3">
+                      <label className="block min-w-0">
+                        <FieldLabel>Lương tháng (€)</FieldLabel>
+                        <HoursInput value={d.monthlySalary} onChange={v => set("monthlySalary", v)} placeholder="VD 1700" unit="€" />
+                      </label>
+                      <label className="block min-w-0">
+                        <FieldLabel>Lương giờ (€/h)</FieldLabel>
+                        <HoursInput value={d.hourlyRate} onChange={v => set("hourlyRate", v)} placeholder="13,90" unit="€/h" />
+                      </label>
+                    </div>
+                    <div>
+                      <FieldLabel>Giờ / tháng</FieldLabel>
+                      <output aria-label="Giờ / tháng" className={`${inputClass} block w-full bg-slate-50 text-slate-700`}>
+                        {salaryMinutes == null ? "—" : `${hoursText(Math.round(salaryMinutes / 60 * 100) / 100)} h`}
+                      </output>
+                      <p className="mt-1 text-xs text-slate-500">Tự tính = Lương tháng ÷ Lương giờ.</p>
+                      {salaryBad && <p role="alert" className="mt-1 text-xs text-rose-600">Cần nhập lương tháng và lương giờ lớn hơn 0.</p>}
+                    </div>
+                  </>
+                ) : (
+                  <label className="block">
+                    <FieldLabel>Giờ / tháng</FieldLabel>
+                    <HoursInput value={d.hours} onChange={v => set("hours", v)} placeholder="VD 80,5" />
+                    {hoursBad && <p role="alert" className="mt-1 text-xs text-rose-600">Giờ phải là số từ 0 trở lên.</p>}
+                  </label>
+                )}
+              </>
+            )}
           </SheetSection>
 
           {/* Nâng cao: alles außer Tên, Hình thức, Bộ phận, Giờ. In der Demo gesperrt. */}
@@ -951,7 +994,7 @@ function EmployeeSheet({
               </button>
               <button
                 onClick={() => onSave(draftToEmployee(d), d.partners)}
-                disabled={d.name.trim().length === 0 || hoursBad || windowBad || fixedBad || shiftRangeOff || allDaysOff || preferencesBad || periodBad || d.unavailableRanges.some(range => Boolean(range.startDate || range.endDate) && (!range.startDate || !range.endDate || range.startDate > range.endDate))}
+                disabled={d.name.trim().length === 0 || hoursBad || salaryBad || windowBad || fixedBad || shiftRangeOff || allDaysOff || preferencesBad || periodBad || d.unavailableRanges.some(range => Boolean(range.startDate || range.endDate) && (!range.startDate || !range.endDate || range.startDate > range.endDate))}
                 className="rounded-lg bg-slate-900 px-6 py-2.5 text-sm font-semibold text-white hover:bg-slate-700 disabled:opacity-40"
               >
                 Lưu

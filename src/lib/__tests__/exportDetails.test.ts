@@ -19,12 +19,36 @@ it("keeps export history when switching months", () => {
   expect(switchMonth(next, [], 2026, 11).schedule.pdfExports).toEqual([entry]);
 });
 
-it("remembers the selected salary input without losing the other salary value", () => {
+it("derives monthly hours from monthly salary divided by hourly rate", () => {
   const draft = draftFrom(initialScheduleFor(STORES[0]).employees[0]);
-  draft.salaryInput = "hourly";
-  draft.hourlyRate = "15,50";
-  const employee = {id:"test", ...draftToEmployee(draft)};
-  expect(draftFrom(employee).salaryInput).toBe("hourly");
-  expect(employee.monthlySalary).toBe(603);
-  expect(employee.hourlyRate).toBe(15.5);
+  Object.assign(draft, {quotaSource: "salary", monthlySalary: "1700", hourlyRate: "13,60", hours: "999"});
+  const employee = {id: "test", ...draftToEmployee(draft)};
+  expect(employee.targetMinutes).toBe(125 * 60);
+  expect(employee.quotaSource).toBe("salary");
+  expect(draftFrom(employee).quotaSource).toBe("salary");
+});
+
+it("uses entered monthly hours and keeps the salary when entering total hours", () => {
+  const draft = draftFrom(initialScheduleFor(STORES[0]).employees[0]);
+  Object.assign(draft, {quotaSource: "salary", monthlySalary: "1700", hourlyRate: "13,60"});
+  draft.quotaSource = "hours";
+  draft.hours = "80,5";
+  const employee = {id: "test", ...draftToEmployee(draft)};
+  expect(employee.targetMinutes).toBe(4830);
+  expect(employee.quotaSource).toBe("hours");
+  expect(employee.monthlySalary).toBe(1700);
+  expect(employee.hourlyRate).toBe(13.6);
+  expect(draftFrom(employee).quotaSource).toBe("hours");
+});
+
+it("opens legacy employees by whether they have a monthly salary", () => {
+  const base = initialScheduleFor(STORES[0]).employees[0];
+  expect(draftFrom({...base, quotaSource: undefined, monthlySalary: 600}).quotaSource).toBe("salary");
+  expect(draftFrom({...base, quotaSource: undefined, monthlySalary: undefined}).quotaSource).toBe("hours");
+});
+
+it("keeps the owner at zero hours without requiring a salary", () => {
+  const draft = draftFrom(initialScheduleFor(STORES[0]).employees[0]);
+  Object.assign(draft, {ownerSupport: true, quotaSource: "salary", monthlySalary: "", hourlyRate: ""});
+  expect(draftToEmployee(draft).targetMinutes).toBe(0);
 });
